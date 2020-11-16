@@ -5,16 +5,11 @@ const cTable = require('console.table');
 // create the connection information for the sql database
 const connection = mysql.createConnection({
     host: 'localhost',
-
-    // Your port; if not 3306
     port: 3306,
-
-    // Your username
     user: 'root',
-
-    // Your password
     password: '123456',
     database: 'employee_db',
+    //allowed multiple SQL statements
     multipleStatements: true
 });
 
@@ -25,10 +20,9 @@ connection.connect(function (err) {
         return;
     }
 
-    // console.log('connected as id ' + connection.threadId);
 });
 
-
+// start prompt
 const start = () => {
     inquirer
         .prompt({
@@ -61,6 +55,7 @@ const start = () => {
         });
 };
 
+//view options prompt
 const view = () => {
     inquirer
         .prompt({
@@ -87,7 +82,7 @@ const view = () => {
         })
 }
 
-
+//function to viewEmployees
 const viewEmployees = () => {
     const query = 'SELECT e.id AS EmployeeID, CONCAT(e.first_name," ", e.last_name) AS Name, role.title AS Title, department.name AS Department, role.salary AS Salary, CONCAT(m.first_name ," " ,m.last_name) AS Manager FROM department RIGHT JOIN role ON role.department_id = department.id RIGHT JOIN employee e On e.role_id = role.id LEFT JOIN employee m ON(m.role_id = e.manager_id) ORDER BY e.id;'
     // const query = 'SELECT first_name AS First_name, last_name AS Last_name, title AS Title, department.name AS Department, role.salary AS Salary, manager_id AS Manager FROM employee INNER JOIN role ON employee.role_id = role.id INNER JOIN department ON role.department_id = department.id';
@@ -99,7 +94,7 @@ const viewEmployees = () => {
     });
 
 }
-
+//function to viewRoles
 const viewRoles = () => {
     const query = 'SELECT id AS TitleID, title AS Title, salary as Salary, department_id AS DepartmentID FROM role';
     connection.query(query, function (err, data) {
@@ -109,7 +104,7 @@ const viewRoles = () => {
     });
 
 }
-
+//function to viewDepartments
 const viewDepartments = () => {
     const query = 'SELECT id AS DepartmentID, name AS Department FROM department';
     connection.query(query, function (err, data) {
@@ -119,7 +114,7 @@ const viewDepartments = () => {
     });
 
 }
-
+//add options prompt
 const add = () => {
     inquirer
         .prompt({
@@ -144,7 +139,7 @@ const add = () => {
             }
         })
 }
-
+//function to addEmployee
 const addEmployee = () => {
     connection.query('SELECT id AS RoleID, title AS Title FROM role;SELECT DISTINCT e.manager_id AS ManagerID,CONCAT(m.first_name, " ", m.last_name) AS Manager,department.name AS Department FROM department RIGHT JOIN role ON role.department_id = department.id RIGHT JOIN employee e On e.role_id = role.id LEFT JOIN employee m ON(m.role_id = e.manager_id)WHERE e.manager_id IS NOT NULL ORDER BY e.id;', function (err, data) {
         console.table(data[0]);
@@ -241,7 +236,7 @@ const addEmployee = () => {
 
 
 }
-
+//function to addRole
 const addRole = () => {
     connection.query('SELECT role.id AS TitleID, title AS Title, salary as Salary, department_id AS DepartmentID, department.name AS Department FROM role JOIN department ON role.department_id=department.id ORDER BY role.id;SELECT id AS DepartmentID, name AS DEPARTMENT from department', function (err, data) {
         if (err) throw err;
@@ -315,7 +310,7 @@ const addRole = () => {
     })
 
 }
-
+//function to addDepartment
 const addDepartment = () => {
     connection.query('SELECT id AS DepartmentID, name AS Department FROM department', function (err, data) {
         if (err) throw err;
@@ -351,7 +346,7 @@ const addDepartment = () => {
     })
 
 }
-
+//update options prompt
 const update = () => {
     inquirer
         .prompt({
@@ -374,6 +369,7 @@ const update = () => {
         })
 }
 
+//function to update employee's role
 const updateRole = () => {
 
     connection.query('SELECT e.id AS EmployeeID, CONCAT(e.first_name," ", e.last_name) AS Name, r.title AS TITLE FROM employee AS e JOIN role AS r WHERE e.role_id=r.id; SELECT id AS TitleID, title FROM role', function (err, data) {
@@ -445,7 +441,7 @@ const updateRole = () => {
 
     });
 }
-
+//function to update employee's manager
 const updateManager = () => {
     connection.query('SELECT e.id AS EmployeeID ,CONCAT(e.first_name, " ", e.last_name) AS Name, r.title AS CurrentTitle From employee AS e JOIN role AS r ON e.role_id = r.id;SELECT DISTINCT e.manager_id AS ManagerID, CONCAT(m.first_name, " " , m.last_name) AS Manager FROM employee AS e JOIN employee AS m ON e.manager_id = m.id WHERE e.manager_id IS NOT NULL', function (err, data) {
         if (err) throw err;
@@ -507,6 +503,7 @@ const updateManager = () => {
     })
 }
 
+//delete options prompt
 const remove = () => {
     inquirer
         .prompt({
@@ -532,6 +529,7 @@ const remove = () => {
         })
 }
 
+//function to delete employee
 const deleteEmployee = () => {
     const query = 'SELECT e.id AS EmployeeID, CONCAT(e.first_name, e.last_name) AS Name, role.title, department.name AS Department, role.salary AS Salary, CONCAT(m.first_name ," " ,m.last_name) AS Manager FROM department RIGHT JOIN role ON role.department_id = department.id RIGHT JOIN employee e On e.role_id = role.id LEFT JOIN employee m ON(m.role_id = e.manager_id) ORDER BY e.id;'
     connection.query(query, function (err, data) {
@@ -568,7 +566,7 @@ const deleteEmployee = () => {
             })
     })
 }
-
+//function to delete role
 const deleteRole = () => {
     const query = 'SELECT id AS TitleID, title AS Title, salary as Salary, department_id AS DepartmentID FROM role';
     connection.query(query, function (err, data) {
@@ -606,7 +604,7 @@ const deleteRole = () => {
     });
 
 }
-
+//function to delete department
 const deleteDepartment = () => {
     const query = 'SELECT id AS DepartmentID, name AS Department FROM department';
     connection.query(query, function (err, data) {
