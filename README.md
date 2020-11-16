@@ -1,4 +1,4 @@
-# Good README Generator
+# Employee Management System
 
 ![License: ISC](https://img.shields.io/badge/Licence-None-white.svg)
 
@@ -11,7 +11,7 @@
 Video link:
  https://drive.google.com/file/d/12IcWcQb6q7aaAAIdyRvMvn2OcjvtTiBH/view
 
-![imag](./Assets/screen.png)
+![imag](./Assets/images/screen.png)
 
 
 ## Table of Contents
