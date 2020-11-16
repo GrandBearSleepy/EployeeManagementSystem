@@ -182,10 +182,17 @@ const addEmployee = () => {
                 {
                     type: 'input',
                     name: 'roleId',
-                    message: 'What is the employee\'s <ROLE ID>?',
+                    message: 'What is the employee\'s <RoleID>?',
                     validate: value => {
+
+                        let idArray = [];
+                        for (var i = 0; i < data[0].length; i++) {
+                            idArray.push(data[0][i].RoleID);
+                        }
+
+                        // console.log(idArray);
                         let valid = /^[0-9]*$/.test(value);
-                        if (valid) {
+                        if (valid && idArray.indexOf(parseInt(value)) != -1) {
                             return true;
                         }
                         else {
@@ -196,10 +203,17 @@ const addEmployee = () => {
                 {
                     type: 'input',
                     name: 'managerId',
-                    message: 'What is the <ID> of the employee\'s manager?',
+                    message: 'What is the <ManagerID> of the employee\'s manager?',
                     validate: value => {
+
+                        let idArray = [];
+                        for (var i = 0; i < data[1].length; i++) {
+                            idArray.push(data[1][i].ManagerID);
+                        }
+
+                        // console.log(idArray);
                         let valid = /^[0-9]*$/.test(value);
-                        if (valid) {
+                        if (valid && idArray.indexOf(parseInt(value)) != -1) {
                             return true;
                         }
                         else {
@@ -211,8 +225,8 @@ const addEmployee = () => {
             .then(function (answer) {
                 connection.query('INSERT INTO employee SET ?',
                     {
-                        first_name: answer.firtName,
-                        last_name: answer.lastName,
+                        first_name: answer.firtName.trim(),
+                        last_name: answer.lastName.trim(),
                         role_id: answer.roleId,
                         manager_id: answer.managerId
                     },
@@ -229,9 +243,10 @@ const addEmployee = () => {
 }
 
 const addRole = () => {
-    connection.query('SELECT role.id AS TitleID, title AS Title, salary as Salary, department_id AS DepartmentID, department.name AS Department FROM role JOIN department ON role.department_id=department.id ORDER BY role.id', function (err, data) {
+    connection.query('SELECT role.id AS TitleID, title AS Title, salary as Salary, department_id AS DepartmentID, department.name AS Department FROM role JOIN department ON role.department_id=department.id ORDER BY role.id;SELECT id AS DepartmentID, name AS DEPARTMENT from department', function (err, data) {
         if (err) throw err;
-        console.table(data);
+        console.table(data[0]);
+        console.table(data[1]);
         inquirer
             .prompt([
                 {
@@ -249,7 +264,7 @@ const addRole = () => {
                     }
                 },
                 {
-                    type: 'number',
+                    type: 'input',
                     name: 'salary',
                     message: 'Please input this role\'s <SALARY>!',
                     validate: value => {
@@ -258,17 +273,24 @@ const addRole = () => {
                             return true;
                         }
                         else {
-                            return "Please enter a <Valid Value>!";
+                            return "Please enter a <Valid Number>!";
                         }
                     }
                 },
                 {
-                    type: 'number',
+                    type: 'input',
                     name: 'departmentId',
-                    message: 'Please input <DEPARTMENT ID>!',
+                    message: 'Please input <DepartmentID>!',
                     validate: value => {
+
+                        let idArray = [];
+                        for (var i = 0; i < data[1].length; i++) {
+                            idArray.push(data[1][i].DepartmentID);
+                        }
+
+                        // console.log(idArray);
                         let valid = /^[0-9]*$/.test(value);
-                        if (valid) {
+                        if (valid && idArray.indexOf(parseInt(value)) != -1) {
                             return true;
                         }
                         else {
@@ -280,7 +302,7 @@ const addRole = () => {
             .then(function (answer) {
                 connection.query('INSERT INTO role SET ?',
                     {
-                        title: answer.title,
+                        title: answer.title.trim(),
                         salary: answer.salary,
                         department_id: answer.departmentId
                     },
@@ -318,7 +340,7 @@ const addDepartment = () => {
             .then(function (answer) {
                 connection.query('INSERT INTO department SET ?',
                     {
-                        name: answer.name
+                        name: answer.name.trim()
                     },
                     function (err) {
                         if (err) throw err;
@@ -365,12 +387,19 @@ const updateRole = () => {
                     name: 'employeeId',
                     message: 'Please input the <EmployeeID> that you would like to update!!\n',
                     validate: value => {
+
+                        let idArray = [];
+                        for (var i = 0; i < data[0].length; i++) {
+                            idArray.push(data[0][i].EmployeeID);
+                        }
+
+                        // console.log(idArray);
                         let valid = /^[0-9]*$/.test(value);
-                        if (valid) {
+                        if (valid && idArray.indexOf(parseInt(value)) != -1) {
                             return true;
                         }
                         else {
-                            return "Please enter a <Valid ID>!";
+                            return "Please enter a <Valid EmployeeID>!";
                         }
                     }
                 },
@@ -379,8 +408,15 @@ const updateRole = () => {
                     name: 'roleId',
                     message: 'Please input new <TitleID>!!',
                     validate: value => {
+
+                        let idArray = [];
+                        for (var i = 0; i < data[1].length; i++) {
+                            idArray.push(data[1][i].TitleID);
+                        }
+
+                        // console.log(idArray);
                         let valid = /^[0-9]*$/.test(value);
-                        if (valid) {
+                        if (valid && idArray.indexOf(parseInt(value)) != -1) {
                             return true;
                         }
                         else {
@@ -421,12 +457,19 @@ const updateManager = () => {
                 message: 'Please input the <EmployeeID> that you would like to update!!\n',
                 name: "employeeId",
                 validate: value => {
+
+                    let idArray = [];
+                    for (var i = 0; i < data[0].length; i++) {
+                        idArray.push(data[0][i].EmployeeID);
+                    }
+
+                    // console.log(idArray);
                     let valid = /^[0-9]*$/.test(value);
-                    if (valid) {
+                    if (valid && idArray.indexOf(parseInt(value)) != -1) {
                         return true;
                     }
                     else {
-                        return "Please enter a <Valid ID>!";
+                        return "Please enter a <Valid EmployeeID>!";
                     }
                 }
             },
@@ -435,12 +478,18 @@ const updateManager = () => {
                 message: "Please input the <ManagerID> that you would like to update!!\n",
                 name: "managerId",
                 validate: value => {
+                    let idArray = [];
+                    for (var i = 0; i < data[1].length; i++) {
+                        idArray.push(data[1][i].ManagerID);
+                    }
+
+                    // console.log(idArray);
                     let valid = /^[0-9]*$/.test(value);
-                    if (valid) {
+                    if (valid && idArray.indexOf(parseInt(value)) != -1) {
                         return true;
                     }
                     else {
-                        return "Please enter a <Valid ID>!";
+                        return "Please enter a <Valid ManagerID>!";
                     }
                 }
             }])
@@ -484,7 +533,7 @@ const remove = () => {
 }
 
 const deleteEmployee = () => {
-    const query = 'SELECT e.id, e.first_name, e.last_name, role.title, department.name AS Department, role.salary AS Salary, CONCAT(m.first_name ," " ,m.last_name) AS Manager FROM department RIGHT JOIN role ON role.department_id = department.id RIGHT JOIN employee e On e.role_id = role.id LEFT JOIN employee m ON(m.role_id = e.manager_id) ORDER BY e.id;'
+    const query = 'SELECT e.id AS EmployeeID, CONCAT(e.first_name, e.last_name) AS Name, role.title, department.name AS Department, role.salary AS Salary, CONCAT(m.first_name ," " ,m.last_name) AS Manager FROM department RIGHT JOIN role ON role.department_id = department.id RIGHT JOIN employee e On e.role_id = role.id LEFT JOIN employee m ON(m.role_id = e.manager_id) ORDER BY e.id;'
     connection.query(query, function (err, data) {
         if (err) throw err;
         console.table(data);
@@ -494,12 +543,18 @@ const deleteEmployee = () => {
                 name: 'employeeId',
                 message: 'Please input the <EmployeeID> that you want to delete.',
                 validate: value => {
+                    let idArray = [];
+                    for (var i = 0; i < data.length; i++) {
+                        idArray.push(data[i].EmployeeID);
+                    }
+
+                    // console.log(idArray);
                     let valid = /^[0-9]*$/.test(value);
-                    if (valid) {
+                    if (valid && idArray.indexOf(parseInt(value)) != -1) {
                         return true;
                     }
                     else {
-                        return "Please enter a <Valid ID>!";
+                        return "Please enter a <Valid EmployeeID>!";
                     }
                 }
             })
@@ -525,18 +580,24 @@ const deleteRole = () => {
                 name: 'roleId',
                 message: 'Please input the <TitleID> that you want to delete.',
                 validate: value => {
+                    let idArray = [];
+                    for (var i = 0; i < data.length; i++) {
+                        idArray.push(data[i].TitleID);
+                    }
+
+                    // console.log(idArray);
                     let valid = /^[0-9]*$/.test(value);
-                    if (valid) {
+                    if (valid && idArray.indexOf(parseInt(value)) != -1) {
                         return true;
                     }
                     else {
-                        return "Please enter a <Valid ID>!";
+                        return "Please enter a <Valid TitleID>!";
                     }
                 }
             })
             .then(function (answer) {
                 // const id = parseInt(answer.roleId);
-                connection.query('DELETE FROM role WHERE id=?', [answer.roleId], function (err, data) {
+                connection.query('SET FOREIGN_KEY_CHECKS = 0;DELETE FROM role WHERE id=?', [answer.roleId], function (err, data) {
                     if (err) throw err;
                     console.log('Delete success!');
                     start();
@@ -557,18 +618,25 @@ const deleteDepartment = () => {
                 name: 'departmentId',
                 message: 'Please input the <DepartmentID> that you want to delete.',
                 validate: value => {
+                    let idArray = [];
+                    for (var i = 0; i < data.length; i++) {
+                        idArray.push(data[i].DepartmentID);
+                    }
+
+                    // console.log(idArray);
                     let valid = /^[0-9]*$/.test(value);
-                    if (valid) {
+                    if (valid && idArray.indexOf(parseInt(value)) != -1) {
                         return true;
                     }
                     else {
-                        return "Please enter a <Valid ID>!";
+                        return "Please enter a <Valid DepartmentID>!";
                     }
                 }
+
             })
             .then(function (answer) {
                 // const id = parseInt(answer.departmentId);
-                connection.query('DELETE FROM role WHERE id=?', [answer.departmentId], function (err, data) {
+                connection.query('SET FOREIGN_KEY_CHECKS = 0;DELETE FROM department WHERE id=?', [answer.departmentId], function (err, data) {
                     if (err) throw err;
                     console.log('Delete success!');
                     start();
