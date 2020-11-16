@@ -25,59 +25,71 @@ connection.connect(function (err) {
         return;
     }
 
-    console.log('connected as id ' + connection.threadId);
+    // console.log('connected as id ' + connection.threadId);
 });
 
-function start() {
+
+const start = () => {
     inquirer
         .prompt({
-            type: 'rawlist',
-            name: 'choice',
-            message: 'What would you like to do?',
-            choices: ['View All Employees',
-                'View All Roles',
-                'View All Departments',
-                'Add Employee',
-                'Add Role',
-                'Add Department',
-                'Update Employee',
-                'Exit'
-            ]
+            type: 'list',
+            name: 'selected',
+            message: 'Please choose your option',
+            choices: ['VIEW', 'ADD', 'UPDATE', 'DELETE', 'EXIT']
+        }).then(function (answer) {
+
+            switch (answer.selected) {
+                case 'VIEW':
+                    view();
+                    break;
+
+                case 'ADD':
+                    add();
+                    break;
+
+                case 'UPDATE':
+                    update();
+                    break;
+
+                case 'DELETE':
+                    remove();
+                    break;
+
+                case 'EXIT':
+                    process.exit();
+            }
+        });
+};
+
+const view = () => {
+    inquirer
+        .prompt({
+            type: 'list',
+            name: 'selected',
+            message: 'What would you like to view?',
+            choices: ['Employees', 'Roles', 'Departments', 'Back']
         })
         .then(function (answer) {
-            switch (answer.choice) {
-                case 'View All Employees':
-                    viewAllEmployees();
+            switch (answer.selected) {
+                case 'Employees':
+                    viewEmployees();
                     break;
-                case 'View All Roles':
-                    viewAllRoles();
+                case 'Roles':
+                    viewRoles();
                     break;
-                case 'View All Departments':
-                    viewAllDepartments();
+                case 'Departments':
+                    viewDepartments();
                     break;
-                case 'Add Employee':
-                    addEmployee();
-                    break;
-                case 'Add Role':
-                    addRole();
-                    break;
-                case 'Add Department':
-                    addDepartment();
-                    break;
-                case 'Update Employee':
-                    updateEmployee();
-                    break;
-                case 'Exit':
-                    connection.end();
-                    break;
-                default:
+                case 'Back':
+                    start();
                     break;
             }
         })
 }
 
-function viewAllEmployees() {
-    const query = ' SELECT e.id, e.first_name, e.last_name, role.title, department.name AS Department, role.salary AS Salary, CONCAT(m.first_name ," " ,m.last_name) AS Manager FROM department RIGHT JOIN role ON role.department_id = department.id RIGHT JOIN employee e On e.role_id = role.id LEFT JOIN employee m ON(m.role_id = e.manager_id) ORDER BY e.id;'
+
+const viewEmployees = () => {
+    const query = 'SELECT e.id AS EmployeeID, CONCAT(e.first_name," ", e.last_name) AS Name, role.title AS Title, department.name AS Department, role.salary AS Salary, CONCAT(m.first_name ," " ,m.last_name) AS Manager FROM department RIGHT JOIN role ON role.department_id = department.id RIGHT JOIN employee e On e.role_id = role.id LEFT JOIN employee m ON(m.role_id = e.manager_id) ORDER BY e.id;'
     // const query = 'SELECT first_name AS First_name, last_name AS Last_name, title AS Title, department.name AS Department, role.salary AS Salary, manager_id AS Manager FROM employee INNER JOIN role ON employee.role_id = role.id INNER JOIN department ON role.department_id = department.id';
     connection.query(query, function (err, data) {
         if (err) throw err;
@@ -88,7 +100,7 @@ function viewAllEmployees() {
 
 }
 
-function viewAllRoles() {
+const viewRoles = () => {
     const query = 'SELECT id AS TitleID, title AS Title, salary as Salary, department_id AS DepartmentID FROM role';
     connection.query(query, function (err, data) {
         if (err) throw err;
@@ -98,7 +110,7 @@ function viewAllRoles() {
 
 }
 
-function viewAllDepartments() {
+const viewDepartments = () => {
     const query = 'SELECT id AS DepartmentID, name AS Department FROM department';
     connection.query(query, function (err, data) {
         if (err) throw err;
@@ -108,12 +120,35 @@ function viewAllDepartments() {
 
 }
 
+const add = () => {
+    inquirer
+        .prompt({
+            type: 'list',
+            name: 'selected',
+            message: 'What would you like to add?',
+            choices: ['Employee', 'Role', 'Department', 'Back']
+        })
+        .then(function (answer) {
+            switch (answer.selected) {
+                case 'Employee':
+                    addEmployee();
+                    break;
+                case 'Role':
+                    addRole();
+                    break;
+                case 'Department':
+                    addDepartment();
+                    break;
+                case 'Back':
+                    start();
+            }
+        })
+}
 
-function addEmployee() {
-    connection.query('SELECT * FROM employee; SELECT id AS RoleID FROM role; SELECT id AS DepartmentID, name AS Department FROM department', function (err, data) {
+const addEmployee = () => {
+    connection.query('SELECT id AS RoleID, title AS Title FROM role;SELECT DISTINCT e.manager_id AS ManagerID,CONCAT(m.first_name, " ", m.last_name) AS Manager,department.name AS Department FROM department RIGHT JOIN role ON role.department_id = department.id RIGHT JOIN employee e On e.role_id = role.id LEFT JOIN employee m ON(m.role_id = e.manager_id)WHERE e.manager_id IS NOT NULL ORDER BY e.id;', function (err, data) {
         console.table(data[0]);
         console.table(data[1]);
-        console.table(data[2]);
         inquirer
             .prompt([
                 {
@@ -145,11 +180,11 @@ function addEmployee() {
                     }
                 },
                 {
-                    type: 'number',
+                    type: 'input',
                     name: 'roleId',
                     message: 'What is the employee\'s <ROLE ID>?',
                     validate: value => {
-                        let valid = /^(0|[1-9][0-9]*)$/.test(value);
+                        let valid = /^[0-9]*$/.test(value);
                         if (valid) {
                             return true;
                         }
@@ -159,11 +194,11 @@ function addEmployee() {
                     }
                 },
                 {
-                    type: 'number',
+                    type: 'input',
                     name: 'managerId',
                     message: 'What is the <ID> of the employee\'s manager?',
                     validate: value => {
-                        let valid = /^(0|[1-9][0-9]*)$/.test(value);
+                        let valid = /^[0-9]*$/.test(value);
                         if (valid) {
                             return true;
                         }
@@ -193,8 +228,8 @@ function addEmployee() {
 
 }
 
-function addRole() {
-    connection.query('SELECT id AS TitleID, title AS Title, salary as Salary, department_id AS DepartmentID FROM role', function (err, data) {
+const addRole = () => {
+    connection.query('SELECT role.id AS TitleID, title AS Title, salary as Salary, department_id AS DepartmentID, department.name AS Department FROM role JOIN department ON role.department_id=department.id ORDER BY role.id', function (err, data) {
         if (err) throw err;
         console.table(data);
         inquirer
@@ -218,7 +253,7 @@ function addRole() {
                     name: 'salary',
                     message: 'Please input this role\'s <SALARY>!',
                     validate: value => {
-                        let valid = /^(0|[1-9][0-9]*)$/.test(value);
+                        let valid = /^[0-9]*$/.test(value);
                         if (valid) {
                             return true;
                         }
@@ -232,7 +267,7 @@ function addRole() {
                     name: 'departmentId',
                     message: 'Please input <DEPARTMENT ID>!',
                     validate: value => {
-                        let valid = /^(0|[1-9][0-9]*)$/.test(value);
+                        let valid = /^[0-9]*$/.test(value);
                         if (valid) {
                             return true;
                         }
@@ -259,7 +294,7 @@ function addRole() {
 
 }
 
-function addDepartment() {
+const addDepartment = () => {
     connection.query('SELECT id AS DepartmentID, name AS Department FROM department', function (err, data) {
         if (err) throw err;
         console.table(data);
@@ -295,21 +330,42 @@ function addDepartment() {
 
 }
 
+const update = () => {
+    inquirer
+        .prompt({
+            type: 'list',
+            name: 'selected',
+            message: 'What would you like to update?',
+            choices: ['Employee\'s Role', 'Employee\'s Manager', 'Back']
+        })
+        .then(function (answer) {
+            switch (answer.selected) {
+                case 'Employee\'s Role':
+                    updateRole();
+                    break;
+                case 'Employee\'s Manager':
+                    updateManager();
+                    break;
+                case 'Back':
+                    start();
+            }
+        })
+}
 
-function updateEmployee() {
+const updateRole = () => {
 
-    connection.query('SELECT employee.id, employee.first_name, employee.last_name, role.title FROM employee JOIN role WHERE employee.role_id=role.id; SELECT id AS TitleID, title FROM role', function (err, data) {
+    connection.query('SELECT e.id AS EmployeeID, CONCAT(e.first_name," ", e.last_name) AS Name, r.title AS TITLE FROM employee AS e JOIN role AS r WHERE e.role_id=r.id; SELECT id AS TitleID, title FROM role', function (err, data) {
         if (err) throw err;
         console.table(data[0]);
         console.table(data[1]);
         inquirer
             .prompt([
                 {
-                    type: 'number',
+                    type: 'input',
                     name: 'employeeId',
-                    message: 'Please input the employee\'s <ID> that you would like to update!!\n',
+                    message: 'Please input the <EmployeeID> that you would like to update!!\n',
                     validate: value => {
-                        let valid = /^(0|[1-9][0-9]*)$/.test(value);
+                        let valid = /^[0-9]*$/.test(value);
                         if (valid) {
                             return true;
                         }
@@ -317,22 +373,13 @@ function updateEmployee() {
                             return "Please enter a <Valid ID>!";
                         }
                     }
-                    // choices: function () {
-                    //     let nameList = [];
-                    //     for (let i = 0; i < data.length; i++) {
-                    //         nameList.push(data[i].id + "" + data[i].first_name + " " + data[i].last_name + " " + data[i].title)
-                    //     }
-                    //     // console.log(nameList);
-                    //     return nameList;
-                    //     console.log(name);
-                    // }
                 },
                 {
-                    type: 'number',
+                    type: 'input',
                     name: 'roleId',
-                    message: 'Please input new <TitleId>!!',
+                    message: 'Please input new <TitleID>!!',
                     validate: value => {
-                        let valid = /^(0|[1-9][0-9]*)$/.test(value);
+                        let valid = /^[0-9]*$/.test(value);
                         if (valid) {
                             return true;
                         }
@@ -363,14 +410,183 @@ function updateEmployee() {
     });
 }
 
+const updateManager = () => {
+    connection.query('SELECT e.id AS EmployeeID ,CONCAT(e.first_name, " ", e.last_name) AS Name, r.title AS CurrentTitle From employee AS e JOIN role AS r ON e.role_id = r.id;SELECT DISTINCT e.manager_id AS ManagerID, CONCAT(m.first_name, " " , m.last_name) AS Manager FROM employee AS e JOIN employee AS m ON e.manager_id = m.id WHERE e.manager_id IS NOT NULL', function (err, data) {
+        if (err) throw err;
+        console.table(data[0]);
+        console.table(data[1]);
+        inquirer
+            .prompt([{
+                type: 'input',
+                message: 'Please input the <EmployeeID> that you would like to update!!\n',
+                name: "employeeId",
+                validate: value => {
+                    let valid = /^[0-9]*$/.test(value);
+                    if (valid) {
+                        return true;
+                    }
+                    else {
+                        return "Please enter a <Valid ID>!";
+                    }
+                }
+            },
+            {
+                type: "input",
+                message: "Please input the <ManagerID> that you would like to update!!\n",
+                name: "managerId",
+                validate: value => {
+                    let valid = /^[0-9]*$/.test(value);
+                    if (valid) {
+                        return true;
+                    }
+                    else {
+                        return "Please enter a <Valid ID>!";
+                    }
+                }
+            }])
+            .then(function (answer) {
+                connection.query('UPDATE employee SET ? WHERE ?',
+                    [
+                        {
+                            manager_id: answer.managerId
+                        },
+                        {
+                            id: answer.employeeId
+                        }
+                    ])
+            })
+    })
+}
+
+const remove = () => {
+    inquirer
+        .prompt({
+            type: 'list',
+            name: 'selected',
+            message: 'What would you like to delete?',
+            choices: ['Employee', 'Role', 'Department', 'Back']
+        })
+        .then(function (answer) {
+            switch (answer.selected) {
+                case 'Employee':
+                    deleteEmployee();
+                    break;
+                case 'Role':
+                    deleteRole();
+                    break;
+                case 'Department':
+                    deleteDepartment();
+                    break;
+                case 'Back':
+                    start();
+            }
+        })
+}
+
+const deleteEmployee = () => {
+    const query = 'SELECT e.id, e.first_name, e.last_name, role.title, department.name AS Department, role.salary AS Salary, CONCAT(m.first_name ," " ,m.last_name) AS Manager FROM department RIGHT JOIN role ON role.department_id = department.id RIGHT JOIN employee e On e.role_id = role.id LEFT JOIN employee m ON(m.role_id = e.manager_id) ORDER BY e.id;'
+    connection.query(query, function (err, data) {
+        if (err) throw err;
+        console.table(data);
+        inquirer
+            .prompt({
+                type: 'input',
+                name: 'employeeId',
+                message: 'Please input the <EmployeeID> that you want to delete.',
+                validate: value => {
+                    let valid = /^[0-9]*$/.test(value);
+                    if (valid) {
+                        return true;
+                    }
+                    else {
+                        return "Please enter a <Valid ID>!";
+                    }
+                }
+            })
+            .then(function (answer) {
+                // const id = parseInt(answer.employeeId);
+                connection.query('DELETE FROM employee WHERE id=?', [answer.employeeId], function (err, data) {
+                    if (err) throw err;
+                    console.log('Delete success!');
+                    start();
+                })
+            })
+    })
+}
+
+const deleteRole = () => {
+    const query = 'SELECT id AS TitleID, title AS Title, salary as Salary, department_id AS DepartmentID FROM role';
+    connection.query(query, function (err, data) {
+        if (err) throw err;
+        console.table(data);
+        inquirer
+            .prompt({
+                type: 'input',
+                name: 'roleId',
+                message: 'Please input the <TitleID> that you want to delete.',
+                validate: value => {
+                    let valid = /^[0-9]*$/.test(value);
+                    if (valid) {
+                        return true;
+                    }
+                    else {
+                        return "Please enter a <Valid ID>!";
+                    }
+                }
+            })
+            .then(function (answer) {
+                // const id = parseInt(answer.roleId);
+                connection.query('DELETE FROM role WHERE id=?', [answer.roleId], function (err, data) {
+                    if (err) throw err;
+                    console.log('Delete success!');
+                    start();
+                })
+            })
+    });
+
+}
+
+const deleteDepartment = () => {
+    const query = 'SELECT id AS DepartmentID, name AS Department FROM department';
+    connection.query(query, function (err, data) {
+        if (err) throw err;
+        console.table(data);
+        inquirer
+            .prompt({
+                type: 'input',
+                name: 'departmentId',
+                message: 'Please input the <DepartmentID> that you want to delete.',
+                validate: value => {
+                    let valid = /^[0-9]*$/.test(value);
+                    if (valid) {
+                        return true;
+                    }
+                    else {
+                        return "Please enter a <Valid ID>!";
+                    }
+                }
+            })
+            .then(function (answer) {
+                // const id = parseInt(answer.departmentId);
+                connection.query('DELETE FROM role WHERE id=?', [answer.departmentId], function (err, data) {
+                    if (err) throw err;
+                    console.log('Delete success!');
+                    start();
+                })
+            })
+    });
+
+}
+
 const userInstruction = () => {
     console.log('\n');
     console.log('--------------------------------------------------------------------------------');
     console.log('\n');
-    console.log('                           Welcome to EMPLOYEE TRACKER                          ');
-    console.log(' You can manage your employees or deparments here!');
-    console.log(' Follow the prompt options, you can VIEW, ADD or UPDATE employees or departments.');
-    console.log(' "Ctrl+c" to end the program!                                                   ');
+    console.log('                 Welcome to EMPLOYEE Management System                          ');
+    console.log('\n');
+    console.log('     You can manage your employees or deparments here!');
+    console.log('     Follow the prompt options, you can VIEW, ADD or UPDATE employees, roles or departments.');
+    console.log('     "Ctrl+c" to end the program!                                                   ');
     console.log('\n');
     console.log('--------------------------------------------------------------------------------');
 }
