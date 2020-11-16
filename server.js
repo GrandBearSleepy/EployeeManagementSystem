@@ -46,7 +46,7 @@ const start = () => {
                     break;
 
                 case 'DELETE':
-                    remove();
+                    deleteOptions();
                     break;
 
                 case 'EXIT':
@@ -56,7 +56,7 @@ const start = () => {
 };
 
 //view options prompt
-const view = () => {
+const viewOptions = () => {
     inquirer
         .prompt({
             type: 'list',
@@ -115,7 +115,7 @@ const viewDepartments = () => {
 
 }
 //add options prompt
-const add = () => {
+const addOptions = () => {
     inquirer
         .prompt({
             type: 'list',
@@ -347,7 +347,7 @@ const addDepartment = () => {
 
 }
 //update options prompt
-const update = () => {
+const updateOptions = () => {
     inquirer
         .prompt({
             type: 'list',
@@ -504,7 +504,7 @@ const updateManager = () => {
 }
 
 //delete options prompt
-const remove = () => {
+const deleteOptions = () => {
     inquirer
         .prompt({
             type: 'list',
