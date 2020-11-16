@@ -34,15 +34,15 @@ const start = () => {
 
             switch (answer.selected) {
                 case 'VIEW':
-                    view();
+                    viewOptions();
                     break;
 
                 case 'ADD':
-                    add();
+                    addOptions();
                     break;
 
                 case 'UPDATE':
-                    update();
+                    updateOptions();
                     break;
 
                 case 'DELETE':
